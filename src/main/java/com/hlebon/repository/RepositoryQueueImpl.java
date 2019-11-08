@@ -4,7 +4,6 @@ import com.hlebon.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -18,14 +17,12 @@ public class RepositoryQueueImpl implements Runnable, RepositoryQueue {
 
     private static final int CAPACITY = 25;
     private static final String INSERT_STATEMENT = "INSERT INTO neotech_time VALUES (null, ?)";
-    private static final int GET_CONNECTION_DELAY = 5000;
+    private final ConnectionManager connectionManager;
 
     private final BlockingQueue<Timestamp> entities = new ArrayBlockingQueue<>(CAPACITY);
-    private final DataSource dataSource;
-    private Connection connection;
 
-    public RepositoryQueueImpl(final DataSource dataSource) {
-        this.dataSource = dataSource;
+    public RepositoryQueueImpl(final ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
     }
 
     @Override
@@ -42,7 +39,7 @@ public class RepositoryQueueImpl implements Runnable, RepositoryQueue {
                 if (timestamp == null) {
                     continue;
                 }
-                final Connection connection = getConnection();
+                final Connection connection = connectionManager.getConnection();
                 insertTimestamp(timestamp, connection);
                 entities.remove();
             } catch (final Exception e) {
@@ -57,17 +54,4 @@ public class RepositoryQueueImpl implements Runnable, RepositoryQueue {
             preparedStatement.execute();
         }
     }
-
-    private Connection getConnection() throws SQLException {
-        while (connection == null || connection.isClosed()) {
-            try {
-                connection = dataSource.getConnection();
-            } catch (final Exception e) {
-                log.error("Can't get connection");
-                Utils.delay(GET_CONNECTION_DELAY);
-            }
-        }
-        return connection;
-    }
-
 }
