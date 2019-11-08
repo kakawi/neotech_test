@@ -11,6 +11,8 @@ services:
       - MYSQL_DATABASE=neotech
       - MYSQL_USER=neotech_user
       - MYSQL_PASSWORD=neotech_pass
+    volumes:
+      - ./src/main/resources/db/migration/V1.1__create_table.sql:/docker-entrypoint-initdb.d/V1.1__create_table.sql
     networks:
       - cmnet
 
