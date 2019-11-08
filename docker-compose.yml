@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  merit-kapital:
+    container_name: neotech__mysql
+    image: mysql:5
+    ports:
+      - "3308:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=neotech_root
+      - MYSQL_DATABASE=neotech
+      - MYSQL_USER=neotech_user
+      - MYSQL_PASSWORD=neotech_pass
+    networks:
+      - cmnet
+
+networks:
+  cmnet:
+    driver: bridge
